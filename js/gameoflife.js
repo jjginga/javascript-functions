@@ -1,21 +1,77 @@
-function seed() {}
+function seed() {
+  return [...arguments];
+}
 
-function same([x, y], [j, k]) {}
+function same([x, y], [j, k]) {
+  return x===j && y===k;
+}
 
 // The game state to search for `cell` is passed as the `this` value of the function.
-function contains(cell) {}
+function contains(cell) {
+  for(const arr of this){
+    if(arr[0]===cell[0] && arr[1]===cell[1]) return true;
+  }
+  return false;
+}
 
-const printCell = (cell, state) => {};
+const printCell = (cell, state) => {
+  return contains.call(state, cell) ? '\u25A3' : '\u25A2';
+};
 
-const corners = (state = []) => {};
+const corners = (state = []) => {
+  const topRight = [getNum(0,'max'), getNum(1,'max')];
+  const bottomLeft = [getNum(0,'min'), getNum(1,'min')];
 
-const printCells = (state) => {};
+  return {topRight, bottomLeft};
 
-const getNeighborsOf = ([x, y]) => {};
+  function getNum(num, pos){
+    if(!state.length) return 0;
+    let arr = state.map(x=>x[num]).sort((a,b)=>b-a);
+    return pos==='max' ? arr[0] : arr[arr.length-1];
+  }
+};
 
-const getLivingNeighbors = (cell, state) => {};
+const printCells = (state) => {
+  let {topRight, bottomLeft} = corners(state);
+  let cells = '';
+  for(let i = bottomLeft[1]; i<=topRight[1]; i++){
+    for(let j = bottomLeft[0]; j<= topRight[0]; j++){
+      cells+=printCell([j,i], state);
+    }
+    cells+='\n';
+  }
+  return cells;
+};
 
-const willBeAlive = (cell, state) => {};
+const getNeighborsOf = ([x, y]) => {
+  let neighbors = [];
+  for (let i = x-1; i<=x+1; i++){
+    for (let j = y-1; j<= y+1; j++){
+      if(same([x,y], [i,j])) continue;
+      neighbors.push([i,j]);
+    }
+  }
+
+  return neighbors;
+};
+
+const getLivingNeighbors = (cell, state) => {
+  let neighbors = getNeighborsOf(cell);
+  let living = [];
+  for(const neighbor of neighbors){
+    const has = contains.bind(state);
+    if(has(neighbor)) living.push(neighbor);
+  }
+
+  return living;
+};
+
+const willBeAlive = (cell, state) => {
+  const livingNeighbors = getLivingNeighbors(cell, state).length;
+  const alive = contains.call(state, cell);
+  if((alive && livingNeighbors===2) || (!alive && livingNeighbors===3)) return false;
+  return true;
+};
 
 const calculateNext = (state) => {};
 
