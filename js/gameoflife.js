@@ -8,10 +8,7 @@ function same([x, y], [j, k]) {
 
 // The game state to search for `cell` is passed as the `this` value of the function.
 function contains(cell) {
-  for(const arr of this){
-    if(arr[0]===cell[0] && arr[1]===cell[1]) return true;
-  }
-  return false;
+  return this.some(e => same(e, cell));
 }
 
 const printCell = (cell, state) => {
@@ -34,21 +31,22 @@ const corners = (state = []) => {
 const printCells = (state) => {
   let {topRight, bottomLeft} = corners(state);
   let cells = '';
-  for(let i = bottomLeft[1]; i<=topRight[1]; i++){
+  for(let i = topRight[1]; i>=bottomLeft[1]; i--){
+    let row = [];
     for(let j = bottomLeft[0]; j<= topRight[0]; j++){
-      cells+=printCell([j,i], state);
+      row.push(printCell([j,i], state));
     }
-    cells+='\n';
+    cells+=row.join(' ')+'\n';
   }
   return cells;
 };
 
 const getNeighborsOf = ([x, y]) => {
   let neighbors = [];
-  for (let i = x-1; i<=x+1; i++){
-    for (let j = y-1; j<= y+1; j++){
-      if(same([x,y], [i,j])) continue;
-      neighbors.push([i,j]);
+  for (let i = y+1; i>=y-1; i--){
+    for (let j = x-1; j<= x+1; j++){
+      if(same([x,y], [j,i])) continue;
+      neighbors.push([j,i]);
     }
   }
 
@@ -56,29 +54,21 @@ const getNeighborsOf = ([x, y]) => {
 };
 
 const getLivingNeighbors = (cell, state) => {
-  let neighbors = getNeighborsOf(cell);
-  let living = [];
-  for(const neighbor of neighbors){
-    const has = contains.bind(state);
-    if(has(neighbor)) living.push(neighbor);
-  }
-
-  return living;
+  return getNeighborsOf(cell).filter(neighbor => contains.bind(state)(neighbor));
 };
 
 const willBeAlive = (cell, state) => {
   const livingNeighbors = getLivingNeighbors(cell, state).length;
   const alive = contains.call(state, cell);
-  if((alive && livingNeighbors===2) || (livingNeighbors===3)) return true;
-  return false;
+  return ((alive && livingNeighbors===2) || (livingNeighbors===3));
 };
 
 const calculateNext = (state) => {
   let newState = [];
   let {topRight, bottomLeft} = corners(state);
-  for(let i = bottomLeft[1]-1; i<=topRight[1]+1; i++){
+  for(let i = topRight[1]+1; i>=bottomLeft[1]-1; i--){
     for(let j = bottomLeft[0]-1; j<= topRight[0]+1; j++){
-      if(willBeAlive[j,i], state) newState.push([j,i]);
+      newState = newState.concat(willBeAlive([j, i], state) ? [[j, i]] : []);;
     }
   }  
   return newState;
@@ -97,14 +87,8 @@ const iterate = (state, iterations) => {
 };
 
 const main = (pattern, iterations) => {
-  let states = iterate(startPatterns[pattern], iterations);
-  let result = '';
-
-  while(states.length){
-    result+=printCells(states.shift())
-    result+='\n';
-  }
-  console.log(result); 
+  const game = iterate(startPatterns[pattern], iterations);
+  game.forEach(s => console.log(printCells(s)));
 
 };
 
