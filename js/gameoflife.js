@@ -69,15 +69,44 @@ const getLivingNeighbors = (cell, state) => {
 const willBeAlive = (cell, state) => {
   const livingNeighbors = getLivingNeighbors(cell, state).length;
   const alive = contains.call(state, cell);
-  if((alive && livingNeighbors===2) || (!alive && livingNeighbors===3)) return false;
-  return true;
+  if((alive && livingNeighbors===2) || (livingNeighbors===3)) return true;
+  return false;
 };
 
-const calculateNext = (state) => {};
+const calculateNext = (state) => {
+  let newState = [];
+  let {topRight, bottomLeft} = corners(state);
+  for(let i = bottomLeft[1]-1; i<=topRight[1]+1; i++){
+    for(let j = bottomLeft[0]-1; j<= topRight[0]+1; j++){
+      if(willBeAlive[j,i], state) newState.push([j,i]);
+    }
+  }  
+  return newState;
+};
 
-const iterate = (state, iterations) => {};
+const iterate = (state, iterations) => {
+  let states = [];
+  states.push(state);
+  while(iterations){
+    state = calculateNext(state);
+    states.push(state);
+    iterations--;
+  }
 
-const main = (pattern, iterations) => {};
+  return states;
+};
+
+const main = (pattern, iterations) => {
+  let states = iterate(startPatterns[pattern], iterations);
+  let result = '';
+
+  while(states.length){
+    result+=printCells(states.shift())
+    result+='\n';
+  }
+  console.log(result); 
+
+};
 
 const startPatterns = {
     rpentomino: [
